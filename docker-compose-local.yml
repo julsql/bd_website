@@ -11,4 +11,4 @@ services:
       - ./media:/app/bd/media # Monte le dossier local 'media' dans le conteneur
     environment:
       - DEBUG=False
-    command: gunicorn bd.wsgi:application --bind 0.0.0.0:8000
+    command: python bd/manage.py runserver 0.0.0.0:8000

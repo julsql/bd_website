@@ -30,14 +30,14 @@ It's a Django project that displays my collection of comics.
 You can run the docker-compose.yml and access to the website:
 
 ```bash
-docker-compose up --build 
+docker-compose -f docker-compose-local.yml up --build 
 ```
 
 And access to localhost:8000
 
 To shut down:
 ```bash
-docker-compose down
+docker-compose -f docker-compose-local.yml down
 ```
 
 ## Test
