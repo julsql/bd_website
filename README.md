@@ -90,12 +90,10 @@ Run tests in `bd/`
     mkdir database
     chmod -R 755 database/
     sudo chown -R www-data:www-data database/
-    mkdir main/media/main/images/dedicaces
-    mkdir main/media/main/images/exlibris
-    chmod -R 755 main/media/main/images/exlibris
-    sudo chown -R www-data:www-data main/static/main/images/exlibris/
-    chmod -R 755 main/media/main/images/dedicaces
-    sudo chown -R www-data:www-data main/static/main/images/dedicaces/
+    mkdir media/main/images/dedicaces
+    mkdir media/main/images/exlibris
+    chmod -R 755 media/
+    sudo chown -R www-data:www-data media/
     ```
    
 6. Create the database
