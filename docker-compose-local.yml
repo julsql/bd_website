@@ -10,5 +10,5 @@ services:
     volumes:
       - ./bd/media:/app/bd/media # Monte le dossier local 'media' dans le conteneur
     environment:
-      - DEBUG=False
+      - DEBUG=True
     command: python bd/manage.py runserver 0.0.0.0:8000
