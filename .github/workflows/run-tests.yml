@@ -38,7 +38,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Create bd-sheet-91.json from secret
-        run: echo "${{ secrets.BD_SHEET_CONFIG }}" > bd/config/bd-sheet-91.json
+        run: echo ${{ secrets.BD_SHEET_CONFIG }} > bd/config/bd-sheet-91.json
 
       # Étape 4 : Exécuter les tests
       - name: Run tests
