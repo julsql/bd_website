@@ -14,6 +14,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DEBUG: false
+      POST_TOKEN: ${{ secrets.POST_TOKEN }}
+      GSHEET_CREDENTIALS: ${{ secrets.GSHEET_CREDENTIALS }}
+
     steps:
       # Étape 1 : Vérifiez le code source
       - name: Checkout code
