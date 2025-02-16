@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from config.settings import POST_TOKEN, STATIC_ROOT
 from main.core.delete_photo.delete_photo_service import DeletePhotoService
-from main.core.upload_photo.internal.photo_connexion import PhotoConnexion
+from main.core.delete_photo.internal.photo_connexion import PhotoConnexion
 
 
 @csrf_exempt
