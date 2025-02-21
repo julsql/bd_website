@@ -1,5 +1,13 @@
 {% load static %}
-                <p>Découvrir toutes les dédicaces !</p>
+<p>Découvrir toutes les dédicaces !</p>
+<a href="{% url 'dedicace' %}" class="button-large">Voir les dédicaces</a>
+
+<a href="{% url 'dedicace' %}#{{ banner_type }}_{{ banner_isbn }}" class="bordered-feature-image">
+    <div class="image-container">
+        <img src="{{ banner_path }}" alt="Bannière" class="fixed-size-image"/>
+    </div>
+</a>
 <script>
+
     console.log("bandeau dédicace")
 </script>
