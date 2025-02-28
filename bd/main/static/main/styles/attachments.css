@@ -30,9 +30,6 @@
     z-index: 1;
     align-items: flex-start;
     text-align: center;
-    padding-block-start: 2px;
-    padding-block-end: 3px;
-    padding-inline-start: 6px;
     box-sizing: border-box;
 }
 
