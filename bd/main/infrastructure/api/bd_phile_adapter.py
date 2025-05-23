@@ -3,13 +3,11 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from main.core.add_album.add_album_error import AddAlbumError
-from main.core.add_album.bd_repository import BdRepository
-from main.core.common.logger.logger import logger
+from main.domain.exceptions.api_exceptions import ApiConnexionException, ApiConnexionDataNotFound
+from main.infrastructure.api.base_album_adapter import BaseAlbumAdapter
 
 
-class BdPhileRepository(BdRepository):
-
+class BdPhileAdapter(BaseAlbumAdapter):
     def __str__(self) -> str:
         return "BdPhileRepository"
 
@@ -37,24 +35,24 @@ class BdPhileRepository(BdRepository):
         # Date de publication
         self._parse_publication_date(informations, isbn)
 
-        logger.info(informations, extra={"isbn": isbn})
+        self.logging_repository.info(str(informations), extra={"isbn": isbn})
         return informations
 
     def _extract_title(self, soup: BeautifulSoup, informations: dict, isbn: int) -> None:
         """ Extraire les informations du titre """
         album_tag = soup.find("section", id="page-title")
         if not album_tag:
-            logger.warning("Informations sur le titre non trouvées", extra={"isbn": isbn})
+            self.logging_repository.warning("Informations sur le titre non trouvées", extra={"isbn": isbn})
             return
         serie_tag = album_tag.find("h1").find("a")
         if not serie_tag:
-            logger.warning("Informations sur la série non trouvées", extra={"isbn": isbn})
+            self.logging_repository.warning("Informations sur la série non trouvées", extra={"isbn": isbn})
         serie = serie_tag.get_text()
         informations["Série"] = serie
 
         title_tag = album_tag.find("h2")
         if not title_tag:
-            logger.warning("Informations sur le titre non trouvées", extra={"isbn": isbn})
+            self.logging_repository.warning("Informations sur le titre non trouvées", extra={"isbn": isbn})
         title = title_tag.get_text()
         match = re.search(r"^Tome\s+(\d+)\s*:", title, re.IGNORECASE)
 
@@ -66,7 +64,7 @@ class BdPhileRepository(BdRepository):
             return None
         else:
             # Pas de numéro de tome trouvé
-            logger.debug(
+            self.logging_repository.debug(
                 f"Pas de numéro de tome trouvé dans le titre: '{title}'",
                 extra={"isbn": isbn}
             )
@@ -101,20 +99,20 @@ class BdPhileRepository(BdRepository):
         try:
             informations["Pages"] = int(value.replace("pages", "").strip())
         except ValueError:
-            logger.warning(f"{value} est un nombre de planches incorrect", extra={"isbn": isbn})
+            self.logging_repository.warning(f"{value} est un nombre de planches incorrect", extra={"isbn": isbn})
 
     def _extract_price(self, value: str, informations: dict, isbn: int) -> None:
         """ Extraire le prix """
         try:
             informations["Prix"] = float(value.replace("€", "").strip())
         except ValueError:
-            logger.warning(f"{value} est un prix incorrect", extra={"isbn": isbn})
+            self.logging_repository.warning(f"{value} est un prix incorrect", extra={"isbn": isbn})
 
     def _extract_image(self, soup: BeautifulSoup, informations: dict, isbn: int) -> None:
         """ Extraire l'image """
         meta_tag = soup.find('meta', attrs={'property': 'og:image'})
         if not meta_tag:
-            logger.warning("Image non trouvée", extra={"isbn": isbn})
+            self.logging_repository.warning("Image non trouvée", extra={"isbn": isbn})
             return
         informations['Image'] = meta_tag['content']
 
@@ -122,7 +120,7 @@ class BdPhileRepository(BdRepository):
         """ Extraire le synopsis """
         synopsis_tag = soup.find('p', class_='synopsis')
         if not synopsis_tag:
-            logger.warning("Synopsis non trouvé", extra={"isbn": isbn})
+            self.logging_repository.warning("Synopsis non trouvé", extra={"isbn": isbn})
             return
 
         cleaned_synopsis = (''.join(str(tag) for tag in synopsis_tag.decode_contents())
@@ -142,12 +140,12 @@ class BdPhileRepository(BdRepository):
         if a_tag:
             return a_tag.get('href')
         else:
-            raise AddAlbumError(f"ISBN {isbn} introuvable dans BD Phile")
+            raise ApiConnexionDataNotFound(f"ISBN {isbn} introuvable", str(self), isbn)
 
     def get_html(self, url: str) -> str:
         response = requests.get(url)
         if response.status_code == 200:
             return response.text
         else:
-            logger.error(f"La requête a échoué. Statut de la réponse : {response.status_code}")
-            raise AddAlbumError(f"Impossible d'affiche le code html de la page {url}")
+            self.logging_repository.error(f"La requête a échoué. Statut de la réponse : {response.status_code}")
+            raise ApiConnexionException(f"Impossible d'affiche le code html de la page {url}", str(self))

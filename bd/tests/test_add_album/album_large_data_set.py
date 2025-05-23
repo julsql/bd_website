@@ -214,7 +214,8 @@ THORGAL_DATA = {
                     'paradis… : Pour échapper à une meute de loup, Thorgal tombe dans '
                     'une crevasse profonde. Il se réveille dans un éden où vivent '
                     'trois sœurs et où le temps semble ne pas avoir d’empreintes sur '
-                    'elles...',        'Image': "https://www.bedetheque.com/media/Couvertures/Couv_398.jpg"
+                    'elles...',
+        'Image': "https://www.bedetheque.com/media/Couvertures/Couv_398.jpg"
     },
     'BDFUGUE': {
         'Album': "la magicienne trahie",

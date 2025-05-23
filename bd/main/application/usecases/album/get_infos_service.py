@@ -1,12 +1,15 @@
-from main.core.add_album.add_album_error import AddAlbumError
-from main.core.add_album.bd_repository import BdRepository
-from main.core.common.logger.logger import logger
+from main.domain.exceptions.album_exceptions import AlbumNotFoundException
+from main.domain.ports.repositories.album_repository import AlbumRepository
+from main.domain.ports.repositories.logger_repository import LoggerRepository
 
 
 class GetInfosService:
-    def __init__(self, bd_repositories: list[BdRepository]) -> None:
+    def __init__(self,
+                 bd_repositories: list[AlbumRepository],
+                 logging_repository: LoggerRepository) -> None:
         self.isbn = None
         self.repositories = bd_repositories
+        self.logging_repository = logging_repository
 
     def main(self, isbn: int) -> dict[str, str]:
         self.isbn = isbn
@@ -25,14 +28,17 @@ class GetInfosService:
                     break
 
             except Exception as e:
-                logger.error(str(e), exc_info=True)
-                logger.warning(f"{isbn} non trouvé dans {str(repository)}", exc_info=True)
+                self.logging_repository.error(str(e), exc_info=True)
+                self.logging_repository.warning(f"{isbn} non trouvé dans {str(repository)}", exc_info=True)
                 continue
 
         if infos_complete:
             return self.corriger_info(infos_complete)
         else:
-            raise AddAlbumError(f"Aucun album trouvé avec l'isbn {self.isbn}")
+            raise AlbumNotFoundException(
+                f"L'album {self.isbn} n'a pas été trouvé",
+                self.isbn
+            )
 
     def is_complete(self, infos: dict) -> bool:
         """Vérifie si toutes les informations requises sont présentes et non vides"""

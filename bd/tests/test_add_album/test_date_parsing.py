@@ -1,11 +1,15 @@
 import unittest
 
-from main.core.add_album.internal.bdgest_connexion import BdGestRepository
+from common.logger_in_memory import LoggerInMemory
+from main.infrastructure.api.bd_gest_adapter import BdGestAdapter
+from main.infrastructure.api.internal.date_parser_service import DateParserService
 
 
 class TestDateParsing(unittest.TestCase):
     def setUp(self):
-        self.repo = BdGestRepository()
+        self.logging_repository = LoggerInMemory()
+        self.repo = BdGestAdapter(self.logging_repository)
+        self.service = DateParserService()
 
     def test_parse_publication_date(self):
         test_cases = [
@@ -99,7 +103,7 @@ class TestDateParsing(unittest.TestCase):
         for test_case in test_cases:
             with self.subTest(input=test_case["input"]):
                 informations = {"Date de publication": test_case["input"]}
-                self.repo._parse_publication_date(informations, "123")
+                self.repo._parse_publication_date(informations, 123)
                 self.assertEqual(
                     informations["Date de publication"],
                     test_case["expected"],
@@ -123,7 +127,7 @@ class TestDateParsing(unittest.TestCase):
 
         for input_date, expected in test_cases:
             with self.subTest(input=input_date):
-                result = self.repo.translate(input_date)
+                result = self.service._translate_month(input_date)
                 self.assertEqual(
                     result,
                     expected,
@@ -142,7 +146,7 @@ class TestDateParsing(unittest.TestCase):
         for test_case in invalid_dates:
             with self.subTest(input=test_case):
                 informations = test_case.copy()
-                self.repo._parse_publication_date(informations, "123")
+                self.repo._parse_publication_date(informations, 123)
                 # Vérifie que la date n'a pas été modifiée ou a été supprimée
                 if "Date de publication" in informations:
                     self.assertIsInstance(
@@ -176,7 +180,7 @@ class TestDateParsing(unittest.TestCase):
         for test_case in edge_cases:
             with self.subTest(input=test_case["input"]):
                 informations = {"Date de publication": test_case["input"]}
-                self.repo._parse_publication_date(informations, "123")
+                self.repo._parse_publication_date(informations, 123)
                 self.assertEqual(
                     informations["Date de publication"],
                     test_case["expected"],

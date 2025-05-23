@@ -1,8 +1,9 @@
 import unittest
 
-from main.core.add_album.add_album_error import AddAlbumError
-from main.core.add_album.add_album_service import AddAlbumService
-from main.core.common.sheet.internal.sheet_in_memory import SheetInMemory
+from common.logger_in_memory import LoggerInMemory
+from common.sheet_in_memory import SheetInMemory
+from main.application.usecases.album.add_album_service import AddAlbumService
+from main.domain.exceptions.album_exceptions import AlbumAlreadyExistsException, AlbumNotFoundException
 from tests.album_data_set import ASTERIX_ISBN, ASTERIX
 from tests.test_add_album.internal.bd_in_memory import BdInMemory
 
@@ -14,8 +15,9 @@ class TestAddAlbumService(unittest.TestCase):
     def setUpClass(cls) -> None:
         # Before all
         cls.sheet_repository = SheetInMemory()
+        cls.logging_repository = LoggerInMemory()
         cls.bd_repository = BdInMemory("AddAlbumBdRepository", ASTERIX)
-        cls.service = AddAlbumService([cls.bd_repository], cls.sheet_repository)
+        cls.service = AddAlbumService([cls.bd_repository], cls.sheet_repository, cls.logging_repository)
 
     def tearDown(self) -> None:
         # After each
@@ -48,12 +50,12 @@ class TestAddAlbumService(unittest.TestCase):
 
     def test_raise_error_on_duplicate_isbn(self) -> None:
         self.service.main(ASTERIX_ISBN)
-        with self.assertRaises(AddAlbumError):
+        with self.assertRaises(AlbumAlreadyExistsException):
             self.service.main(ASTERIX_ISBN)
 
     def test_raise_error_get_info_from_incorrect_isbn(self) -> None:
-        with self.assertRaises(AddAlbumError):
-            a = self.service.main(0)
+        with self.assertRaises(AlbumNotFoundException):
+            self.service.main(0)
 
 
 if __name__ == '__main__':

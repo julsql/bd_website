@@ -1,17 +1,22 @@
-from main.core.add_album.add_album_error import AddAlbumError
-from main.core.add_album.get_infos_service import GetInfosService
-from main.core.common.logger.logger import logger
-from main.core.common.sheet.sheet_repository import SheetRepository
+from main.application.usecases.album.get_infos_service import GetInfosService
+from main.domain.exceptions.album_exceptions import AlbumAlreadyExistsException, AlbumNotFoundException
+from main.domain.ports.repositories.album_repository import AlbumRepository
+from main.domain.ports.repositories.logger_repository import LoggerRepository
+from main.domain.ports.repositories.sheet_repository import SheetRepository
 
 
 class AddAlbumService:
-    def __init__(self, bd_repositories: list, sheet_repository: SheetRepository) -> None:
+    def __init__(self,
+                 bd_repositories: list[AlbumRepository],
+                 sheet_repository: SheetRepository,
+                 logging_repository: LoggerRepository) -> None:
         doc_name = "bd"
         sheet_name = "BD"
         self.isbn = None
         self.connexion = sheet_repository
         self.connexion.open(doc_name, sheet_name)
-        self.get_infos_service = GetInfosService(bd_repositories)
+        self.get_infos_service = GetInfosService(bd_repositories, logging_repository)
+        self.logging_repository = logging_repository
 
     def main(self, isbn: int) -> dict[str, str]:
         self.isbn = isbn
@@ -19,12 +24,17 @@ class AddAlbumService:
 
     def add_album(self) -> dict[str, str]:
         if self.connexion.double(self.isbn):
-            message_log = f"{self.isbn} est déjà dans la base de données"
-            raise AddAlbumError(message_log, self.isbn)
+            raise AlbumAlreadyExistsException(
+                f"L'album {self.isbn} existe déjà dans la base",
+                self.isbn
+            )
 
         infos = self.get_infos()
         if infos is None:
-            raise AddAlbumError(f"{self.isbn} n'a pas été trouvé", self.isbn)
+            raise AlbumNotFoundException(
+                f"L'album {self.isbn} n'a pas été trouvé",
+                self.isbn
+            )
         self.add_line(infos)
         return infos
 
@@ -47,6 +57,6 @@ class AddAlbumService:
             elif title is None:
                 liste.append("")
             else:
-                logger.error(f"{title} manque")
+                self.logging_repository.error(f"{title} manque")
                 raise IndexError(f"{title} manque")
         return liste

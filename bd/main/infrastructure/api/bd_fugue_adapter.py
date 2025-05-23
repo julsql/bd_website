@@ -5,14 +5,15 @@ import re
 import cloudscraper
 from bs4 import BeautifulSoup
 
-from main.core.add_album.add_album_error import AddAlbumError
-from main.core.add_album.bd_repository import BdRepository
-from main.core.common.logger.logger import logger
+from main.domain.exceptions.api_exceptions import ApiConnexionException, ApiConnexionDataNotFound
+from main.domain.ports.repositories.logger_repository import LoggerRepository
+from main.infrastructure.api.base_album_adapter import BaseAlbumAdapter
 
 
-class BdFugueRepository(BdRepository):
+class BdFugueAdapter(BaseAlbumAdapter):
 
-    def __init__(self) -> None:
+    def __init__(self, logger_repository: LoggerRepository) -> None:
+        super().__init__(logger_repository)
         self.header = {"Titre album": "Album", "Tome": "Numéro",
                        "Série": "Série", "Scénario": "Scénario",
                        "Dessin": "Dessin", "Couleurs": "Couleurs", "editeur": "Éditeur",
@@ -31,15 +32,15 @@ class BdFugueRepository(BdRepository):
 
     def get_infos(self, isbn: int) -> dict[str, str | float | int]:
         url = self.get_url(isbn)
-        logger.info(url, extra={"isbn": isbn})
+        self.logging_repository.info(url, extra={"isbn": isbn})
         html = self.get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
 
         error_div = soup.find('title', string=re.compile(r'^Résultats de recherche pour :'))
         if error_div:
-            raise AddAlbumError(f"{isbn} n'est pas dans BD Fugue ou bien il y a ambiguïté", isbn)
+            raise ApiConnexionDataNotFound(f"{isbn} introuvable ou bien il y a ambiguïté", str(self), isbn)
 
-        infos = {}
+        informations = {}
 
         titles = soup.find_all("h1", {"class": [
             "order-1 mt-4 mb-3 lg:mb-4 lg:mt-0 text-2xl lg:text-5xl text-center lg:text-left w-full font-bold text-black lg:w-1/2 lg:pl-12 lg:float-right"]})
@@ -50,11 +51,11 @@ class BdFugueRepository(BdRepository):
             if len(parts) == 2:
                 series = parts[0].strip()
                 album = parts[1].strip()
-                infos["Série"] = series
-                infos["Album"] = album
+                informations["Série"] = series
+                informations["Album"] = album
             else:
                 # Si pas de "-", on considère que c'est le nom de l'album
-                infos["Album"] = title.strip()
+                informations["Album"] = title.strip()
 
         # Recherche des divs contenant les informations
         divs = soup.find_all("div", {"class": ["col label w-1/3 product-attribute-label truncate",
@@ -66,29 +67,30 @@ class BdFugueRepository(BdRepository):
 
             # Gestion des cas particuliers
             if label == "Auteur(s)":
-                self._handle_authors(value, infos)
+                self._handle_authors(value, informations)
             elif label == "Format narratif" and value in ["Intégrale", "Histoires complètes"]:
-                infos["Numéro"] = 1
+                informations["Numéro"] = 1
             elif label in self.header.keys():
-                self._handle_label(label, value, infos, isbn)
+                self._handle_label(label, value, informations, isbn)
 
         # Remplir l'album avec la série si nécessaire
-        if "Album" not in infos and "Série" in infos:
-            infos["Album"] = infos["Série"]
+        if "Album" not in informations and "Série" in informations:
+            informations["Album"] = informations["Série"]
 
         # Extraction du prix
-        self._extract_price(soup, infos, isbn)
+        self._extract_price(soup, informations, isbn)
 
         # Extraction de l'image
-        self._extract_image(soup, infos, isbn)
+        self._extract_image(soup, informations, isbn)
 
         # Extraction du synopsis
-        self._extract_synopsis(soup, infos, isbn)
+        self._extract_synopsis(soup, informations, isbn)
 
         # Extraction de la date
-        self._parse_publication_date(infos, isbn)
+        self._parse_publication_date(informations, isbn)
 
-        return infos
+        self.logging_repository.info(str(informations), extra={"isbn": isbn})
+        return informations
 
     def _handle_authors(self, value: str, infos: dict) -> None:
         """ Gérer le traitement des auteurs """
@@ -109,7 +111,7 @@ class BdFugueRepository(BdRepository):
             try:
                 infos[self.header[label]] = int(value)
             except ValueError:
-                logger.warning("Pas de nombre de page correct trouvé", extra={"isbn": isbn})
+                self.logging_repository.warning("Pas de nombre de page correct trouvé", extra={"isbn": isbn})
         else:
             infos[self.header[label]] = value
 
@@ -120,9 +122,9 @@ class BdFugueRepository(BdRepository):
             try:
                 infos["Prix"] = float(price_meta.get("content"))
             except ValueError:
-                logger.warning("Pas de prix correct trouvé", extra={"isbn": isbn})
+                self.logging_repository.warning("Pas de prix correct trouvé", extra={"isbn": isbn})
         else:
-            logger.warning("Pas de prix correct trouvé", extra={"isbn": isbn})
+            self.logging_repository.warning("Pas de prix correct trouvé", extra={"isbn": isbn})
 
     def _extract_image(self, soup: BeautifulSoup, infos: dict, isbn: int) -> None:
         """ Extraire l'image de l'album """
@@ -131,7 +133,7 @@ class BdFugueRepository(BdRepository):
         if image_element:
             infos["Image"] = image_element.get('src')
         else:
-            logger.warning("Pas d'image trouvée", extra={"isbn": isbn})
+            self.logging_repository.warning("Pas d'image trouvée", extra={"isbn": isbn})
 
     def _extract_synopsis(self, soup: BeautifulSoup, infos: dict, isbn: int) -> None:
         """ Extraire le synopsis de l'album """
@@ -139,7 +141,7 @@ class BdFugueRepository(BdRepository):
         if div_tag:
             infos["Synopsis"] = div_tag.get_text(strip=True)
         else:
-            logger.warning("Pas de synopsis trouvé", extra={"isbn": isbn})
+            self.logging_repository.warning("Pas de synopsis trouvé", extra={"isbn": isbn})
 
     def get_url(self, isbn: int) -> str:
         return f"https://www.bdfugue.com/catalogsearch/result/?q={isbn}"
@@ -169,5 +171,5 @@ class BdFugueRepository(BdRepository):
             return response.text
 
         except Exception as e:
-            logger.error(f"Erreur lors de l'accès à {url}: {str(e)}")
-            raise AddAlbumError(f"Impossible d'accéder à la page {url}")
+            self.logging_repository.error(f"Erreur lors de l'accès à {url}: {str(e)}")
+            raise ApiConnexionException(f"Impossible d'accéder à la page {url}", str(self))
