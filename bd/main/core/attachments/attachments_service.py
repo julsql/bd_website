@@ -1,5 +1,5 @@
 from main.core.attachments.attachments_repository import AttachmentsRepository
-from main.core.common.data.data import SIGNED_COPY_PATH, EXLIBRIS_PATH, SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
+from main.core.common.data.const import SIGNED_COPY_PATH, EXLIBRIS_PATH, SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
 
 
 class AttachmentsService:

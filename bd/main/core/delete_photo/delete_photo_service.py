@@ -1,4 +1,4 @@
-from main.core.common.data.data import SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
+from main.core.common.data.const import SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
 from main.core.delete_photo.photo_repository import PhotoRepository
 
 

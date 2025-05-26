@@ -5,7 +5,7 @@ import unittest
 
 import django
 
-from main.core.common.data.data import SIGNED_COPY_PATH, EXLIBRIS_PATH
+from main.core.common.data.const import SIGNED_COPY_PATH, EXLIBRIS_PATH
 from main.domain.model.statistics import Statistics
 from main.infrastructure.persistence.database.statistics_attachment_adapter import StatisticsAttachmentAdapter
 

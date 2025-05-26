@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from main.core.common.data.data import SIGNED_COPY_PATH, EXLIBRIS_PATH
+from main.core.common.data.const import SIGNED_COPY_PATH, EXLIBRIS_PATH
 from main.core.delete_photo.internal.photo_connexion import PhotoConnexion
 
 

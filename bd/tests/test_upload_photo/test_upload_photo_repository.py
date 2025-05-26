@@ -7,7 +7,7 @@ from unittest.mock import patch
 import django
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from main.core.common.data.data import SIGNED_COPY_PATH, EXLIBRIS_PATH
+from main.core.common.data.const import SIGNED_COPY_PATH, EXLIBRIS_PATH
 from main.core.upload_photo.internal.upload_photo_connexion import UploadPhotoConnexion
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'

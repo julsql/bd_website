@@ -2,7 +2,7 @@ import unittest
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from main.core.common.data.data import SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
+from main.core.common.data.const import SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
 from main.core.delete_photo.delete_photo_service import DeletePhotoService
 from tests.test_delete_photo.internal.photo_in_memory import PhotoInMemory
 

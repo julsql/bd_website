@@ -1,6 +1,6 @@
 import os
 
-from main.core.common.data.data import SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
+from main.core.common.data.const import SIGNED_COPY_FOLDER, EXLIBRIS_FOLDER
 from main.domain.model.statistics import Statistics
 from main.domain.ports.repositories.attachment_repository import AttachmentRepository
 
