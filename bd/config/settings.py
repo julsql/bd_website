@@ -99,6 +99,9 @@ DATABASES = {
         'PASSWORD': POSTGRES_PASSWORD,
         'HOST': db_host,
         'PORT': port,
+        "OPTIONS": {
+            "options": "-c search_path=public,main"
+        }
     }
 }
 
