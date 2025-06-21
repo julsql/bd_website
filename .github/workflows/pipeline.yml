@@ -64,6 +64,11 @@ jobs:
         run: |
           PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost -p 5452 -U $POSTGRES_USER -d $POSTGRES_DB -f bd/database/init.sql
 
+      - name: Debug SECRET_KEY
+        run: |
+          echo "SECRET_KEY length: ${#SECRET_KEY}"
+          echo "SECRET_KEY: $SECRET_KEY"
+
       - name: Run tests
         run: |
           cd bd
